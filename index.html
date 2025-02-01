@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .form-container h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        .form-container input {
+            width: 100%;
+            padding-top: 10px;
+            padding-bottom:  10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        .form-container button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="userName" placeholder="Nome de usuário" required>
+            <input type="password" id="userPass" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <button id="registerButton">Cadastrar</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function (event) {
+            event.preventDefault(); // Evita o recarregamento da página
+
+            const userName = document.getElementById("userName").value;
+            const userPass = document.getElementById("userPass").value;
+
+            try {
+                const response = await fetch("https://db-consult-api-production.up.railway.app/login", {  // Alterado para a rota correta
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userName, userPass })
+                });
+
+                const data = await response.json();  // Aqui esperamos um JSON
+                const resultDiv = document.getElementById("result");
+
+                if (data.success) {
+                    resultDiv.textContent = "Login bem-sucedido!";
+                } else {
+                    resultDiv.textContent = data.message;  // Exibe a mensagem de erro
+                }
+
+            } catch (error) {
+                console.error("Erro ao conectar com a API:", error);
+                document.getElementById("result").textContent = "Erro ao conectar à API.";
+            }
+        });
+
+        document.getElementById("registerButton").addEventListener("click", async function (event) {
+            event.preventDefault(); // Evita recarregamento da página
+
+            const userName = document.getElementById("userName").value;
+                const userPass = document.getElementById("userPass").value;
+
+                if (!userName || !userPass) {
+                    document.getElementById("result").textContent = "Preencha os campos antes de cadastrar!";
+                    return;
+                }
+
+                try {
+                    const response = await fetch("https://db-consult-api-production.up.railway.app/register", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userName, userPass })
+                    });
+
+                    const data = await response.json();
+                    const resultDiv = document.getElementById("result");
+
+                    if (response.status === 201) { // Código 201 para criação bem-sucedida
+                        resultDiv.textContent = data.message;
+                    } else if (response.status === 409) { // Código 409 para conflito (usuário já existe)
+                        resultDiv.textContent = data.message;
+                    } else {
+                        resultDiv.textContent = "Erro inesperado: " + data.message;
+                    }
+
+                } catch (error) {
+                    console.error("Erro ao cadastrar usuário:", error);
+                    document.getElementById("result").textContent = "Erro ao conectar à API.";
+                }
+            });
+    </script>
+</body>
+</html>
